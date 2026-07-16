@@ -1,6 +1,7 @@
 import Chat from "../models/chat.model";
+import Message from "../models/message.model";
 import User from "../models/user.model";
-import { NotFoundException } from "../utils/appError";
+import { BadRequestException, NotFoundException } from "../utils/appError";
 import { createSchemaType } from "../validators/chat.validator";
 
 
@@ -26,5 +27,47 @@ export const createChatService = async(userId:string,body:createSchemaType) => {
             isGroup:false,
             createdBy:userId
         })
+    }
+}
+
+export const getUsersChatsService = async(userId:string) => {
+    const chats  = await Chat.find({
+        participants:{
+            $in:[userId]
+        }
+    }).populate("participants","name avatar")
+      .populate({
+        path:'lastMessage',
+        populate:{
+            path:"sender",
+            select:"name avatar"
+        }
+      }).sort({updatedAt:-1});
+
+      return chats
+}
+
+export const getSingleChatService = async (chatId:string,userId:string) => {
+    const chat = await Chat.findOne({
+        _id:chatId,
+        participants:{
+            $in:[userId]
+        }
+    })
+    if(!chat) throw new BadRequestException("chat not found ");
+
+    const messages = Message.findOne({chatId})
+    .populate("sender","name avatar")
+    .populate({
+        path:"replyTo",
+        select:'content image sender',
+        populate:{
+            path:'sender',
+            select:"name avatar"
+        }
+    })
+    .sort({createdAt:1});
+    return {
+        chat,messages
     }
 }
