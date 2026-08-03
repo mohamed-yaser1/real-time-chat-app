@@ -9,3 +9,5 @@ export const createMessageSchema = z.object({
     message:"either content or image should b provided",
     path:["content"]
 })
+
+export type createMessgeType = z.infer<typeof createMessageSchema>

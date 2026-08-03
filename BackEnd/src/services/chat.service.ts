@@ -71,3 +71,14 @@ export const getSingleChatService = async (chatId:string,userId:string) => {
         chat,messages
     }
 }
+
+export const validateChatParticipants = async (chatId:string,userId:string) => {
+
+        const chat = await Chat.findOne({
+            _id:chatId,
+            participants:userId
+        })
+        if(!chat) throw new Error('user not a participant in this chat')
+    
+        return chat
+}
