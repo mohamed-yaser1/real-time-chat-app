@@ -1,3 +1,4 @@
+import { emitNewChatToParticipants } from "../lib/socket";
 import Chat from "../models/chat.model";
 import Message from "../models/message.model";
 import User from "../models/user.model";
@@ -27,6 +28,13 @@ export const createChatService = async(userId:string,body:createSchemaType) => {
             isGroup:false,
             createdBy:userId
         })
+
+        const populatedChat = await chat?.populate('participants','name avatar');
+        const participantIdsStrings = populatedChat.participants.map(p => p._id?.toString());
+
+        emitNewChatToParticipants(participantIdsStrings,chat)
+
+        return chat;
     }
 }
 

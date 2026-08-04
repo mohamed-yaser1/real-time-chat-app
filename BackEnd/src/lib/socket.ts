@@ -53,7 +53,7 @@ export const initializeSocket = (HttpServer:HttpServer) => {
 
         io?.emit("online:users",Array.from(onlineUsers.keys()));
 
-        socket.join(`user: ${userId}`);
+        socket.join(`user:${userId}`);
 
         socket.on('chat:join',async (chatId:string,callback?:(err?:string) => void) => {
             try{
@@ -78,5 +78,31 @@ export const initializeSocket = (HttpServer:HttpServer) => {
             console.log(`socket dissconnected ${userId} ${newSocketId}`)
         })
     })
-
 }
+    function getIo(){
+        if(!io) throw new Error('socket is not initialized');
+        return io
+    }
+
+    export const emitNewChatToParticipants = (participantIds:string[],chat:any) => {
+        const io = getIo();
+        for(const participant of participantIds){
+            io.to(`user:${participant}`).emit('chat:new',chat)
+        }
+    }
+
+    export const emitNewMessageToChatRoom = (userId:string,chatId:string,newMessage:any) => {
+        const io = getIo();
+        const senderSocketId = onlineUsers.get(userId);
+
+        if(senderSocketId) io.to(`chat:${chatId}`).except(senderSocketId).emit("message:new",newMessage);
+        else io.to(`chat:${chatId}`).emit('message:new',newMessage)
+    }
+
+    export const emitlastMessageToParticipants = (allParticipantsIds:string[],chatId:string,newMessage:any) => {
+        const io = getIo();
+        const payload = {chatId,newMessage}
+        for(const participant of allParticipantsIds){
+            io.to(`user:${participant}`).emit('chat:update',payload)
+        }
+    }
