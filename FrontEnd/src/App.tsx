@@ -1,11 +1,11 @@
-import { Button } from "./components/ui/button"
+import AppRoutes from "./routes"
 
 
 function App() {
 
   return (
     <>
-      <Button variant={'secondary'} className={'text-red-500'}>click me</Button>
+      <AppRoutes/>
     </>
   )
 }
